@@ -1,0 +1,69 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+  html { font-family: 'Manrope', Inter, system-ui, sans-serif; scroll-behavior: smooth; }
+  body { @apply bg-ivory text-charcoal antialiased; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { @apply bg-ivory; }
+  ::-webkit-scrollbar-thumb { @apply bg-sage rounded-full; }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-sm border border-white/40 rounded-2xl shadow-glass;
+  }
+  .eco-btn {
+    @apply bg-eco-gradient text-white font-semibold px-6 py-3 rounded-xl
+           hover:opacity-90 active:scale-95 transition-all duration-200 shadow-eco;
+  }
+  .eco-btn-outline {
+    @apply border-2 border-forest text-forest font-semibold px-6 py-3 rounded-xl
+           hover:bg-forest hover:text-white active:scale-95 transition-all duration-200;
+  }
+  .input-field {
+    @apply w-full px-4 py-3 rounded-xl border border-sage/40 bg-white/60 backdrop-blur-sm
+           focus:outline-none focus:ring-2 focus:ring-emerald/50 focus:border-emerald
+           placeholder:text-sage transition-all duration-200 text-charcoal;
+  }
+  .stat-card {
+    @apply glass-card p-6 hover:shadow-eco-lg transition-all duration-300 hover:-translate-y-1;
+  }
+  .nav-link {
+    @apply flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium
+           hover:bg-forest/10 hover:text-forest transition-all duration-150;
+  }
+  .nav-link.active {
+    @apply bg-forest/15 text-forest;
+  }
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+  }
+  .badge-green  { @apply badge bg-emerald/15 text-emerald-700; }
+  .badge-orange { @apply badge bg-amber-100 text-amber-700; }
+  .badge-red    { @apply badge bg-red-100 text-red-700; }
+  .badge-blue   { @apply badge bg-blue-100 text-blue-700; }
+  .badge-gray   { @apply badge bg-gray-100 text-gray-600; }
+  .section-title {
+    @apply text-2xl font-bold text-charcoal tracking-tight;
+  }
+  .page-header {
+    @apply mb-8;
+  }
+}
+
+@layer utilities {
+  .bg-eco-gradient { background: linear-gradient(135deg, #1a4731 0%, #2d6a4f 50%, #10b981 100%); }
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #1a4731, #10b981);
+  }
+  .hero-pattern {
+    background-image: radial-gradient(circle at 20% 50%, rgba(16,185,129,0.08) 0%, transparent 50%),
+                      radial-gradient(circle at 80% 20%, rgba(26,71,49,0.06) 0%, transparent 50%);
+  }
+}

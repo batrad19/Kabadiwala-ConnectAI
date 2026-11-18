@@ -1,0 +1,14 @@
+{
+  "laptop": 0,
+  "mobile_phone": 1,
+  "battery": 2,
+  "keyboard": 3,
+  "mouse": 4,
+  "pcb": 5,
+  "monitor": 6,
+  "printer": 7,
+  "television": 8,
+  "cables": 9,
+  "charger_adapter": 10,
+  "other_ewaste": 11
+}

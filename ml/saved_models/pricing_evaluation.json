@@ -1,0 +1,27 @@
+{
+  "best_model": "Random Forest",
+  "metrics": {
+    "Linear Regression": {
+      "MAE": 362.77,
+      "RMSE": 744.06,
+      "R2": 0.3355
+    },
+    "Decision Tree": {
+      "MAE": 194.19,
+      "RMSE": 466.96,
+      "R2": 0.7383
+    },
+    "Random Forest": {
+      "MAE": 137.1,
+      "RMSE": 359.48,
+      "R2": 0.8449
+    },
+    "XGBoost": {
+      "MAE": 124.34,
+      "RMSE": 399.11,
+      "R2": 0.8088
+    }
+  },
+  "dataset_size": 2500,
+  "disclaimer": "DEMONSTRATION DATA ONLY - Not guaranteed market appraisal."
+}

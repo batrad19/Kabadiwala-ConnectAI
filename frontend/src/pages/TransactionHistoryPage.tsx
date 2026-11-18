@@ -1,0 +1,352 @@
+import React, { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+  Receipt,
+  Download,
+  Calendar,
+  Search,
+  Filter,
+  CheckCircle,
+  Clock,
+  ArrowUpRight,
+  Eye,
+  FileText,
+  DollarSign,
+  Package
+} from 'lucide-react'
+import DashboardLayout from '../layouts/DashboardLayout'
+import api from '../services/api'
+
+interface TransactionItem {
+  id: number
+  product_name: string
+  category: string
+  quantity: number
+  weight_kg: number
+  unit_price: number
+  total_price: number
+}
+
+interface Transaction {
+  id: number
+  transaction_ref: string
+  date: string
+  type: string
+  status: string
+  seller_name: string
+  buyer_name: string
+  total_amount: number
+  total_weight_kg: number
+  payment_method: string
+  items: TransactionItem[]
+}
+
+const mockTransactions: Transaction[] = [
+  {
+    id: 1,
+    transaction_ref: 'TXN-2026-0089',
+    date: '2026-03-28T14:30:00Z',
+    type: 'Collection Sale',
+    status: 'Completed',
+    seller_name: 'Rahul Sharma (Collector)',
+    buyer_name: 'EcoRecycle Solutions Hub',
+    total_amount: 4850,
+    total_weight_kg: 18.5,
+    payment_method: 'UPI / Direct Bank',
+    items: [
+      { id: 1, product_name: 'Dell Inspiron Laptops (Scrap)', category: 'Laptop', quantity: 2, weight_kg: 4.8, unit_price: 1200, total_price: 2400 },
+      { id: 2, product_name: 'Telecom PCB Boards', category: 'PCB', quantity: 5, weight_kg: 3.2, unit_price: 450, total_price: 1450 },
+      { id: 3, product_name: 'Mixed Copper/Data Cables', category: 'Cables', quantity: 1, weight_kg: 10.5, unit_price: 95, total_price: 1000 }
+    ]
+  },
+  {
+    id: 2,
+    transaction_ref: 'TXN-2026-0074',
+    date: '2026-03-24T10:15:00Z',
+    type: 'Household Pickup',
+    status: 'Completed',
+    seller_name: 'Pooja Verma (Household)',
+    buyer_name: 'CleanEarth Recyclers Ltd',
+    total_amount: 1200,
+    total_weight_kg: 6.2,
+    payment_method: 'Cash on Handover',
+    items: [
+      { id: 4, product_name: 'Old CRT Monitor & CPU casing', category: 'Monitor', quantity: 1, weight_kg: 6.2, unit_price: 1200, total_price: 1200 }
+    ]
+  },
+  {
+    id: 3,
+    transaction_ref: 'TXN-2026-0062',
+    date: '2026-03-18T16:45:00Z',
+    type: 'B2B Aggregator Drop',
+    status: 'Completed',
+    seller_name: 'Central Scrap Aggregators',
+    buyer_name: 'GreenTech Refiners & Extractors',
+    total_amount: 18400,
+    total_weight_kg: 84.0,
+    payment_method: 'NEFT Transfer',
+    items: [
+      { id: 5, product_name: 'High-grade Motherboards & PCBs', category: 'PCB', quantity: 40, weight_kg: 24.0, unit_price: 550, total_price: 13200 },
+      { id: 6, product_name: 'Lithium-ion Pack Enclosures', category: 'Battery', quantity: 15, weight_kg: 60.0, unit_price: 86.6, total_price: 5200 }
+    ]
+  }
+]
+
+export default function TransactionHistoryPage() {
+  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions)
+  const [loading, setLoading] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedTxn, setSelectedTxn] = useState<Transaction | null>(null)
+  const [page, setPage] = useState(1)
+
+  useEffect(() => {
+    fetchTransactions()
+  }, [])
+
+  const fetchTransactions = async () => {
+    setLoading(true)
+    try {
+      const res = await api.get('/transactions/')
+      const list = Array.isArray(res.data) ? res.data : (res.data?.items ?? res.data?.results ?? [])
+      if (list && list.length > 0) {
+        setTransactions(list)
+      }
+    } catch {
+      // Fallback gracefully to demo mock transactions
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const filtered = transactions.filter((t) =>
+    t.transaction_ref.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    t.buyer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    t.seller_name.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  const downloadReceipt = (txn: Transaction) => {
+    const receiptContent = `
+=====================================================
+         KABADIWALA CONNECT AI - RECEIPT
+   Authorized E-Waste Intelligence & Recycling Network
+=====================================================
+
+Transaction Reference : ${txn.transaction_ref}
+Date & Time           : ${new Date(txn.date).toLocaleString()}
+Status                : ${txn.status.toUpperCase()}
+Payment Method        : ${txn.payment_method}
+
+PARTICIPANTS:
+- Originator/Seller   : ${txn.seller_name}
+- Authorized Recycler : ${txn.buyer_name}
+
+ITEMIZED BREAKDOWN:
+${txn.items
+  .map(
+    (item, idx) =>
+      `${idx + 1}. ${item.product_name} [${item.category}]
+   Qty: ${item.quantity} | Weight: ${item.weight_kg} kg | Total: INR ${item.total_price}`
+  )
+  .join('\n')}
+
+-----------------------------------------------------
+TOTAL NET WEIGHT      : ${txn.total_weight_kg} kg
+TOTAL VALUATION / PAY : INR ${txn.total_amount.toLocaleString('en-IN')}
+-----------------------------------------------------
+* Certified safe recycling trail under CPCB / E-Waste Management Rules digital ledger.
+* Generated by Kabadiwala Connect AI platform.
+=====================================================
+`
+    const blob = new Blob([receiptContent], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `Receipt_${txn.transaction_ref}.txt`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  return (
+    <DashboardLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-3">
+              <Receipt className="w-8 h-8 text-emerald" />
+              Transaction History & Receipts
+            </h1>
+            <p className="text-gray-600 mt-1">
+              Audit trail of recycled items, payouts, formal handovers, and verifiable manifests.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search transactions..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 pr-4 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald/40 bg-white shadow-sm"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Transactions Table Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50/70 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  <th className="py-4 px-6">Reference ID</th>
+                  <th className="py-4 px-6">Date</th>
+                  <th className="py-4 px-6">Counterparty</th>
+                  <th className="py-4 px-6">Net Weight</th>
+                  <th className="py-4 px-6">Amount (INR)</th>
+                  <th className="py-4 px-6">Status</th>
+                  <th className="py-4 px-6 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 text-sm">
+                {filtered.map((t) => (
+                  <tr key={t.id} className="hover:bg-gray-50/60 transition-colors">
+                    <td className="py-4 px-6 font-mono font-semibold text-emerald">
+                      {t.transaction_ref}
+                    </td>
+                    <td className="py-4 px-6 text-gray-600">
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                        {new Date(t.date).toLocaleDateString()}
+                      </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="font-medium text-gray-900">{t.buyer_name}</div>
+                      <div className="text-xs text-gray-500">{t.seller_name}</div>
+                    </td>
+                    <td className="py-4 px-6 font-medium text-gray-700">
+                      {t.total_weight_kg} kg
+                    </td>
+                    <td className="py-4 px-6 font-bold text-gray-900">
+                      ₹{t.total_amount.toLocaleString('en-IN')}
+                    </td>
+                    <td className="py-4 px-6">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald/10 text-emerald">
+                        <CheckCircle className="w-3 h-3" />
+                        {t.status}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => setSelectedTxn(t)}
+                          className="p-1.5 text-gray-500 hover:text-emerald rounded-lg hover:bg-emerald/10 transition-colors"
+                          title="View Details"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => downloadReceipt(t)}
+                          className="p-1.5 text-gray-500 hover:text-emerald rounded-lg hover:bg-emerald/10 transition-colors"
+                          title="Download Receipt"
+                        >
+                          <Download className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {filtered.length === 0 && (
+            <div className="py-12 text-center text-gray-500">
+              <Package className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+              <p>No transactions match your search.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Modal for Details */}
+        <AnimatePresence>
+          {selectedTxn && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-gray-100"
+              >
+                <div className="flex items-center justify-between border-b pb-4">
+                  <div>
+                    <h3 className="font-bold text-lg text-gray-900">Transaction Manifest</h3>
+                    <p className="text-xs font-mono text-emerald">{selectedTxn.transaction_ref}</p>
+                  </div>
+                  <button
+                    onClick={() => setSelectedTxn(null)}
+                    className="text-gray-400 hover:text-gray-600 text-lg font-bold"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <div className="py-4 space-y-4">
+                  <div className="grid grid-cols-2 gap-4 text-xs bg-gray-50 p-3 rounded-xl">
+                    <div>
+                      <span className="text-gray-500 block">Date & Time</span>
+                      <span className="font-semibold">{new Date(selectedTxn.date).toLocaleString()}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 block">Payment Method</span>
+                      <span className="font-semibold">{selectedTxn.payment_method}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 block">Seller / Origin</span>
+                      <span className="font-semibold">{selectedTxn.seller_name}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 block">Recycler Destination</span>
+                      <span className="font-semibold">{selectedTxn.buyer_name}</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-2">Item Details</h4>
+                    <div className="space-y-2">
+                      {selectedTxn.items.map((item) => (
+                        <div key={item.id} className="flex items-center justify-between text-sm p-2 rounded-lg border border-gray-100">
+                          <div>
+                            <div className="font-medium text-gray-900">{item.product_name}</div>
+                            <div className="text-xs text-gray-500">Qty: {item.quantity} • Weight: {item.weight_kg} kg</div>
+                          </div>
+                          <div className="font-bold text-emerald">₹{item.total_price}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-3 flex justify-between items-center">
+                    <div>
+                      <span className="text-xs text-gray-500">Total Net Payout:</span>
+                      <div className="text-2xl font-bold text-gray-900">₹{selectedTxn.total_amount.toLocaleString('en-IN')}</div>
+                    </div>
+                    <button
+                      onClick={() => downloadReceipt(selectedTxn)}
+                      className="eco-btn flex items-center gap-2"
+                    >
+                      <Download className="w-4 h-4" /> Download Receipt (.txt)
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+      </div>
+    </DashboardLayout>
+  )
+}

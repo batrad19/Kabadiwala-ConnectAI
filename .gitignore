@@ -1,0 +1,56 @@
+# ─── Environment ─────────────────────────────────────────────────────────────
+.env
+.env.local
+.env.production
+
+# ─── Python ──────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ─── Node.js ─────────────────────────────────────────────────────────────────
+node_modules/
+frontend/dist/
+frontend/.vite/
+*.tsbuildinfo
+
+# ─── ML / Datasets ───────────────────────────────────────────────────────────
+ml/datasets/
+ml/saved_models/*.pth
+ml/saved_models/*.pt
+ml/saved_models/*.pkl
+# Keep README and structure files
+!ml/saved_models/.gitkeep
+!ml/datasets/.gitkeep
+
+# ─── Storage ─────────────────────────────────────────────────────────────────
+storage/uploads/*
+!storage/uploads/.gitkeep
+
+# ─── IDEs ────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ─── OS ──────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ─── Logs ────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ─── Docker ──────────────────────────────────────────────────────────────────
+# (docker-compose.yml is committed)
